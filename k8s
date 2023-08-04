@@ -1,0 +1,104 @@
+-----------------------------------------
+Create I am user in aws account assign programetic access and add admin policy to your user
+
+
+
+
+
+###### 2. aws user setup & s3 bucket creation to store kops logs and data ######
+Loing in aws 
+Create kops user in IAM > user name > programmatic access > click on attach existing policy directly > 
+Dministrator access > Next:Tags 
+Download credential from aws 
+
+######	1. Install aws cli ######
+
+apt install awscli -y
+
+
+#### Login aws console in cli #############
+root@ip-172-31-39-10:~# aws configure
+AWS Access Key ID [None]: AKIAQCQRVS4W3LB5YPOK
+AWS Secret Access Key [None]: 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
+Default region name [None]: us-south-1
+Default output format [None]: json
+root@ip-172-31-39-10:~#
+
+
+Generate SSH key 
+
+# ssh-keygen   ( pub key will be uploaded to EC2 instances
+
+
+
+###################### install kubectl ################################
+
+curl -LO "https://storage.googleapis.com/kubernetes-release/release/$(curl -s https://storage.googleapis.com/kubernetes-release/release/stable.txt)/bin/linux/amd64/kubectl"
+
+chmod +x ./kubectl
+
+Move the binary in to your PATH.
+
+sudo mv ./kubectl /usr/local/bin/kubectl
+
+echo "source <(kubectl completion bash)" >> .bashrc
+
+
+################  install Kops--------- myk8s-june
+curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+#curl -LO https://github.com/kubernetes/kops/releases/download/$(curl -s https://api.github.com/repos/kubernetes/kops/releases/latest | grep tag_name | cut -d '"' -f 4)/kops-linux-amd64
+
+
+chmod +x kops-linux-amd64
+
+mv kops-linux-amd64 kops
+
+chmod +x kops-linux-amd64
+
+mv kops /usr/local/bin/kops
+
+
+echo "source <(kops completion bash)" >> /root/.bashrc
+source .bashrc
+
+
+
+########  Create S3 bucket by login aws console ##########
+
+
+kops create cluster --name=mykube11.k8s.local --state=s3://myk8s-june --zones=ap-south-1a --node-count=2 --node-size=t2.medium --master-size=t2.medium --yes
+
+# kops create cluster --name=mykube11.k8s.local --state=s3://mykops21222 --zones=ap-south-1a --node-count=2 --node-size=t2.medium --master-size=t2.medium --yes
+
+# kops create cluster --name=mykube11.k8s.local --state=s3://myk8s-june --zones=ap-south-1a --node-count=2 --node-size=t2.medium --master-size=t2.medium --ssh-public-key ~/.ssh/id_rsa.pub --yes
+
+
+Cluster is starting.  It should be ready in a few minutes.
+
+Suggestions:
+ * validate cluster: kops validate cluster --wait 10m
+ * list nodes: kubectl get nodes --show-labels
+ * ssh to the master: ssh -i ~/.ssh/id_rsa ubuntu@api.mykube.k8s.local
+ * the ubuntu user is specific to Ubuntu. If not using Ubuntu please use the appropriate user based on your OS.
+ * read about installing addons at: https://kops.sigs.k8s.io/operations/addons.
+
+
+
+
+kops validate cluster --state=s3://mykops1122
+#kops validate cluster --state=s3://mykops21222    #this takes some time wait for 2-3 min.
+
+
+root@ubuntu-xenial:~/pod-preset# kops delete cluster --name=mykube.k8s.local --state=s3://mykops1234 --yes
+#root@ubuntu-xenial:~/pod-preset # kops delete cluster --name=mykube11.k8s.local --state=s3://s3mykops --yes
+
+
+
+kops create cluster --name=mykube.k8s.local --state=s3://mykops1122 --zones=ap-south-1a --node-count=2 --node-size=t2.medium --master-size=t2.medium --yes
+#kops create cluster --name=mykube11.k8s.local --state=s3://mykops21222 --zones=ap-south-1a --node-count=2 --node-size=t2.medium --master-size=t2.medium --yes
+
+
+
+kops delete cluster --name=mykube.k8s.local --state=s3://mykops1122 --yes
+# kops delete cluster --name=mykube11.k8s.local --state=s3://myk8s-june --yes
